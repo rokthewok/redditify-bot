@@ -72,7 +72,7 @@ async def on_message(message):
   pattern = re.compile(r'\br/([A-Z]|[a-z]|[0-9])+([A-Z]|[a-z]|[0-9]|_)*')
   urllist = ['https://www.reddit.com/{}'.format(sub.group(0))
                     for sub in pattern.finditer(text)]
-  if(text.startswith('!rbot')):
+  if text.startswith('!rbot'):
     words = text.split(' ')
     if len(words) == 1 or words[1] == 'help':
       await show_help(message)
