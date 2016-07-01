@@ -8,6 +8,9 @@ import os
 
 client = discord.Client()
 
+class URLError(Exception):
+  pass
+
 @client.event
 async def on_ready():
   '''Listen for on ready event from discord client'''
@@ -29,6 +32,9 @@ async def show_help(message):
     },
     {   'name': 'top',
         'text': 'retrieve today\'s top scoring post for the given subreddits'
+    },
+    {   'name': 'hot',
+        'text': 'retrieve the current trending post for the given subreddits'
     }
   ]
 
@@ -37,6 +43,33 @@ async def show_help(message):
   help_message = '**redditfy-bot** available commands:\n{}'.format(command_text)
   print(help_message)
   await client.send_message(message.channel, help_message)
+
+def get_subreddit_post_url(endpoint, url):
+  resp = requests.get(url + endpoint)
+  if resp.status_code == 200:
+    print('got response: {}'.format(resp))
+    new_url = resp.json()['data']['children'][0]['data']['url']
+    return new_url
+  else:
+    print('failed to retrieve top link for {}. status code: {}'
+                  .format(url, resp.status_code))
+    raise URLError()
+
+
+def get_hot_links(urllist):
+  '''Retrieve URLs for hot reddit posts for the given subreddit URLs
+
+  positional arguments:
+  urllist -- a list of subreddit URLs, of the form
+             "http://www.reddit.com/r/<subreddit>"
+  '''
+  new_urls = []
+  for url in urllist:
+    try:
+      new_urls.append(get_subreddit_post_url('/hot/.json?count=1', url))
+    except URLError as e:
+      print('Failed to retrieve hot url for {}.'.format(url))
+  return new_urls
 
 def get_top_links(urllist):
   '''Retrieve URLs for top reddit posts for the given subreddit URLs
@@ -47,11 +80,10 @@ def get_top_links(urllist):
   '''
   new_urls = []
   for url in urllist:
-    resp = requests.get(url + '/top/.json?count=1?t=day')
-    if resp.status_code == 200:
-      new_url = resp.json()['data']['children'][0]['data']['url']
-      new_urls.append(new_url)
-    time.sleep(0.1)
+    try:
+      new_urls.append(get_subreddit_post_url('/top/.json?count=1?t=day', url))
+    except URLError as e:
+      print('failed to retrieve top url for {}.'.format(url))
   return new_urls
 
 @client.event
@@ -78,6 +110,8 @@ async def on_message(message):
       await show_help(message)
     elif words[1] == 'top':
       urllist = get_top_links(urllist)
+    elif words[1] == 'hot':
+      urllist = get_hot_links(urllist)
     else:
       show_help(message)
 
