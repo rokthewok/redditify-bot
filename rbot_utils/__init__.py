@@ -1,5 +1,9 @@
 #! /usr/bin/python3
 import requests
+import os
+
+
+user_agent = os.environ.get('REDDIT_USER_AGENT')
 
 
 class URLError(Exception):
@@ -17,7 +21,7 @@ def get_subreddit_json(endpoint, subreddit):
   Raises URLError on non-200 response code.
   """
   url = 'https://www.reddit.com/{}'.format(subreddit)
-  resp = requests.get(url + endpoint)
+  resp = requests.get(url + endpoint, headers={'User-Agent': user_agent})
   if resp.status_code == 200:
     print('got response: {}'.format(resp))
     return resp.json()
