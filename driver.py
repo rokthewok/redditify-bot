@@ -35,7 +35,7 @@ def show_help(message, commands):
   ]
 
   commands_help.extend((c.help for key, c in commands.items()))
-  command_text = '\n'.join(['  -{0[name]:<12}{0[text]}'.format(cmd)
+  command_text = '\n'.join(['   {0[name]:<12}{0[text]}'.format(cmd)
                                 for cmd in commands_help])
   help_message = '**redditfy-bot** available commands:\n{}'.format(command_text)
   print(help_message)
