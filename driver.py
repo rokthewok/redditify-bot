@@ -72,8 +72,10 @@ async def on_message(message):
       outgoing_message = show_help(message, rbot_commands.Commands.commands)
     else:
       outgoing_message = rbot_commands.Commands.commands[words[1]].do(message, subreddit)
-  else:
+  elif subreddit:
     outgoing_message = 'https://www.reddit.com/{}'.format(subreddit)
+  else:
+    print('nothing to do for message: {}'.format(text))
 
   if outgoing_message:
     print('outgoing message: {}'.format(outgoing_message))
