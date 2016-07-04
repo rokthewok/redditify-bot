@@ -8,9 +8,14 @@ class HotCommand(rbot_commands.command.Command):
   """Command that retrieves the current (non-sticky) hot news from a given
   subreddit.
   """
+  NAME = 'hot'
   def __init__(self):
-    rbot_commands.command.Command.__init__(self, help={'name': 'hot',
-                                                       'text': 'hot help'})
+    rbot_commands.command.Command.__init__(self,
+        help={
+                'name': HotCommand.NAME,
+                'text': 'retrieve the current trending ' + \
+                        'post for the given subreddits'
+             })
 
   def do(self, message, subreddit):
     """Perform the action described by this command - in this case, retrieve

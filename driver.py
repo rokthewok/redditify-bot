@@ -4,7 +4,7 @@ import re
 import requests
 import time
 import os
-import rbot_commands.hot
+import rbot_commands
 import rbot_utils
 
 
@@ -21,49 +21,25 @@ async def on_ready():
   print(client.user.id)
   print('------')
 
-def show_help(message):
+def show_help(message, commands):
   """Print help message in chat
 
   positional arguments:
   message -- the discord.py Message object provided by the on_message event.
   """
-  commands = [
+  commands_help = [
     {
         'name': 'help',
         'text': 'show this help message.'
     },
-    {   'name': 'top',
-        'text': 'retrieve today\'s top scoring post for the given subreddits'
-    },
-    {   'name': 'hot',
-        'text': 'retrieve the current trending post for the given subreddits'
-    }
   ]
 
+  commands_help.extend((c.help for key, c in commands.items()))
   command_text = '\n'.join(['  -{0[name]:<12}{0[text]}'.format(cmd)
-                                for cmd in commands])
+                                for cmd in commands_help])
   help_message = '**redditfy-bot** available commands:\n{}'.format(command_text)
   print(help_message)
   return help_message
-
-
-def get_top_link(subreddit):
-  """Retrieve URLs for top reddit posts for the given subreddit URLs
-
-  positional arguments:
-  subreddit -- a subreddit name of the form "r/<subreddit>"
-  """
-  if not subreddit:
-    return None
-  try:
-    resp = rbot_utils.get_subreddit_json('/top/.json?count=1?t=day', subreddit)
-    if resp['data']['children']:
-      return resp['data']['children'][0]['data']['url']
-    else:
-      return None
-  except URLError as e:
-    print('failed to retrieve top url for {}.'.format(url))
-    return None
 
 
 @client.event
@@ -89,25 +65,21 @@ async def on_message(message):
   else:
     subreddit = match.group(0)
 
-  hot_command = rbot_commands.hot.HotCommand()
   outgoing_message = None
   if text.startswith('!rbot'):
     words = text.split(' ')
-    if len(words) == 1 or words[1] == 'help':
-      outgoing_message = show_help(message)
-    elif words[1] == 'top':
-      outgoing_message = get_top_link(subreddit)
-    elif words[1] == 'hot':
-      outgoing_message = hot_command.do(message, subreddit)
+    if len(words) < 2 or not rbot_commands.Commands.commands.get(words[1]):
+      outgoing_message = show_help(message, rbot_commands.Commands.commands)
     else:
-      show_help(message)
+      outgoing_message = rbot_commands.Commands.commands[words[1]].do(message, subreddit)
+  else:
+    outgoing_message = 'https://www.reddit.com/{}'.format(subreddit)
 
-    if outgoing_message:
-      print('outgoing message: {}'.format(outgoing_message))
-      await client.send_message(message.channel, outgoing_message)
-    else:
-      print('Invalid message result.')
-
+  if outgoing_message:
+    print('outgoing message: {}'.format(outgoing_message))
+    await client.send_message(message.channel, outgoing_message)
+  else:
+    print('Invalid message result.')
 
 if __name__ == '__main__':
   token = os.environ.get('DISCORD_TOKEN')
