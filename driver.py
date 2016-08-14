@@ -57,7 +57,7 @@ async def on_message(message):
   if message.author.name == client.user.name:
     return
   text = message.content
-  pattern = re.compile(r'\br/([A-Z]|[a-z]|[0-9])+([A-Z]|[a-z]|[0-9]|_)*')
+  pattern = re.compile(r'(?<!/)\br/([A-Z]|[a-z]|[0-9])+([A-Z]|[a-z]|[0-9]|_)*')
   match = pattern.search(text)
   subreddit = ''
   if match is None:
